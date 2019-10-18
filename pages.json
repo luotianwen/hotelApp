@@ -7,7 +7,12 @@
                         "enablePullDownRefresh": true,
                         "onReachBottomDistance": 20
             }
-        }, {
+        },  {
+            "path": "pages/main/about",
+            "style": {
+                "navigationBarTitleText": "关于我们" 
+            }
+        },{
             "path": "pages/login/login",
             "style": {
                 "navigationBarTitleText": "登录"
@@ -28,6 +33,11 @@
             "path": "pages/user/user",
             "style": {
                 "navigationBarTitleText": "我的"
+            }
+        },{
+            "path": "platforms/app-plus/feedback/feedback",
+            "style": {
+                "navigationBarTitleText": "问题反馈"
             }
         }
        
