@@ -59,26 +59,8 @@
 				data.forEach(item => {
 					this.productList.push(item);
 				});
-			}
-		},
-
-		onPullDownRefresh() {
-			this.loadData('refresh');
-			// 实际开发中通常是网络请求，加载完数据后就停止。这里仅做演示，加延迟为了体现出效果。
-			setTimeout(() => {
-				uni.stopPullDownRefresh();
-			}, 2000);
-		},
-		onReachBottom() {
-			this.loadData();
-		},
-		onLoad() {
-			this.loadData();
-			setTimeout(() => {
-				this.renderImage = true;
-			}, 300);
-			if (!this.hasLogin) {
-				 
+			},
+			login(){
 				uni.showModal({
 					title: '未登录',
 					content: '您未登录，需要登录后才能继续',
@@ -104,6 +86,30 @@
 					}
 				});
 			}
+		},
+
+		onPullDownRefresh() {
+			this.loadData('refresh');
+			// 实际开发中通常是网络请求，加载完数据后就停止。这里仅做演示，加延迟为了体现出效果。
+			setTimeout(() => {
+				uni.stopPullDownRefresh();
+			}, 2000);
+		},
+		onReachBottom() {
+			this.loadData();
+		},
+		onShow() {
+			if (!this.hasLogin) {
+				 
+				this.login()
+			}
+		},
+		onLoad() {
+			this.loadData();
+			setTimeout(() => {
+				this.renderImage = true;
+			}, 300);
+			 
 		}
 	}
 </script>

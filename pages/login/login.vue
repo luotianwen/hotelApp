@@ -74,17 +74,23 @@
 						"pwd": this.password
 					},
 					dataType: 'text',
-					method: 'POST',
 					complete: function() {
 						waiting.close();
 					},
 					success: (d) => {
-						console.log(JSON.stringify(d));
-						if (d.data.code == 1) {
+						var datas=JSON.parse(d.data);
+						if (datas.code == 1) {
 							plus.nativeUI.toast('登录成功');
-							service.addUser(d.data.data);
+							service.addUser(datas.data);
 							this.toMain(this.account);
-						} else {
+						}else if(datas.code == 0) {
+							uni.showToast({
+								icon: 'none',
+								title: datas.msg,
+							});
+						}
+						 
+						 else {
 							uni.showToast({
 								icon: 'none',
 								title: "登录失败或者网络异常!",

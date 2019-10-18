@@ -1,7 +1,7 @@
 <template>
     <view class="content">
         <view class="btn-row">
-			<view style="text-align: center;" v-if="hasLogin" > sssss</view>
+			<view style="text-align: center;" v-if="hasLogin" > {{name}}</view>
 			<view style="text-align: center;" v-if="!hasLogin"> 请先登录</view>
             <button style="margin-top: 20upx;"  v-if="!hasLogin" type="primary" class="primary" @tap="bindLogin">登录</button>
             <button style="margin-top: 20upx;"  v-if="hasLogin" type="default" @tap="bindLogout">退出登录</button>
@@ -12,6 +12,7 @@
 </template>
 
 <script>
+	import service from '../../service.js';
     import {
         mapState,
         mapMutations
@@ -20,7 +21,15 @@
     export default {
         computed: {
             ...mapState(['hasLogin', 'forcedLogin'])
-        },onLoad() {
+        },
+		data() {
+			return {
+				 
+				name: '' 
+			 
+			}
+		},
+		onLoad() {
         	if (!this.hasLogin) {
         		uni.showModal({
         			title: '未登录',
@@ -45,6 +54,11 @@
         			}
         		});
         	}
+			else{
+				let u=service.getUsers();
+				this.name=u.name;
+				}
+				
         },
         methods: {
             ...mapMutations(['logout']),
@@ -61,7 +75,7 @@
 			feedback(){
 				this.navigateFlag = true;
 				uni.navigateTo({
-				    url: '/platforms/app-plus/feedback/feedback'
+				    url: '/pages/feedback'
 				});
 				setTimeout(() => {
 				    this.navigateFlag = false;
