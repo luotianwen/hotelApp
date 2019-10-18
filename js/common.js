@@ -1,11 +1,11 @@
 
-var app_http="http://192.168.0.120:8081/";
+var app_http="http://192.168.2.124:8083/f/app";
  
 /*
  * 登录接口
  */
 function getLoginUrl(){	 
-    var str="oauth/login";
+    var str="login";
 	return app_http+str; 
 }
 /*
