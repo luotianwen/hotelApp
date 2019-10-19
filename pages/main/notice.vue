@@ -1,29 +1,24 @@
 <template>
 	<view id="goodsList">
 
-		<!-- <div class="goodsList-cent clearfix">
-	
-			<view v-for="(value,key) in productList" :key="key" @click="goGoodDetail(value)" class="goodsList-list">
-				<image class="follow-centImg" :src="value.image"></image>
-	
-				<view class="goodsList-listh6">ss</view>
-				<view class="goodsList-listp">销量： ss</view>
-				<view class="goodsList-listp">售价：¥ss</view>
-			</view>
-	
-		</div> 
-	 -->
+
 
 		<view class="goodsList-cent clearfix">
 			<view v-for="(product,index) in productList" :key="index" class="goodsList-list">
-				<image v-if="renderImage" :src="product.image" class="follow-centImg"></image>
-				<view class="goodsList-listh6">访客人员 距4小时后离开</view>
-				<view class="goodsList-listp">来访时间 2019.9.25 17:20</view>
-				<view class="goodsList-listp">离开时间 2019.8.1 20:18</view>
-				<view class="goodsList-listp">来访房间 302</view>
+				<image :src="product.pto" class="follow-centImg"></image>
+				<view class="goodsList-listh6">访客人员 距{{product.oh}}小时后离开</view>
+				<view class="goodsList-listp">来访时间 {{product.startDate}}</view>
+				<view class="goodsList-listp">离开时间 {{product.outDate}}</view>
+				<view class="goodsList-listp">来访房间 {{product.num}}</view>
 				<view class="goodsList-listp">
-					<button class="mini-btn" type="primary" size="mini">处理</button>
-					<button class="mini-btn" type="primary" size="mini">人已经离开</button>
+					<button  class="mini-btn" size="mini" type="warn" v-if="product.state==0" @tap="doit(product,1)">
+						<block v-if="product.tx>0" >{{product.tx*60}}s </block>
+					前去提醒</button>
+				<!-- 	<button class="mini-btn" size="mini" type="primary" v-if="product.state==1&&product.self==1" @tap="doit(product,2)">已处理</button> -->
+					<button class="mini-btn" size="mini" type="default" v-if="(product.state==1||product.state==2)&&product.self==2">{{product.updateName}}在处理中</button>
+					<button class="mini-btn" size="mini" type="primary" v-if="product.state==1&&product.self==1" @tap="doit(product,3)">人已离开</button>
+					<button class="mini-btn" size="mini" type="default" v-if="product.state==3">{{product.updateName}}已处理完成</button>
+					 
 				</view>
 
 			</view>
@@ -33,6 +28,7 @@
 </template>
 
 <script>
+	import service from '../../service.js';
 	import {
 		mapState
 	} from 'vuex'
@@ -47,48 +43,109 @@
 			};
 		},
 		methods: {
+			doit(product, state1) {
+				var waiting = plus.nativeUI.showWaiting();
+				uni.request({
+					url: service.logupdateUrl(),
+					data: {
+						"name": service.getUsers().name,
+						"uid": service.getUsers().id,
+						"logId": product.id,
+						"state": state1
+					},
+					dataType: 'text',
+					complete: function() {
+						waiting.close();
+					},
+					success: (d) => {
+						var datas = JSON.parse(d.data);
+						if (datas.code == 1) {
+
+							product.state = state1;
+							plus.nativeUI.toast('操作成功');
+							//this.loadData('refresh');
+						} else if (datas.code == 0) {
+							uni.showToast({
+								icon: 'none',
+								title: datas.msg,
+							});
+						} else {
+							uni.showToast({
+								icon: 'none',
+								title: "操作失败或者网络异常!",
+							});
+						}
+					},
+					fail: function() {
+						plus.nativeUI.toast("网络异常!");
+					}
+				});
+			},
 			loadData(action = 'add') {
-				const data = [{
-					image: 'https://img-cdn-qiniu.dcloud.net.cn/uploads/example/product1.jpg',
-					title: 'Apple iPhone X 256GB 深空灰色 移动联通电信4G手机',
-					originalPrice: 9999,
-					favourPrice: 8888,
-					tip: '自营'
-				}];
+
 
 				if (action === 'refresh') {
+					this.pageNo = 1;
 					this.productList = [];
 				}
+				console.log("hid" + service.getUsers().hid)
+				uni.request({
+					url: service.gettishiUrl(),
+					data: {
+						"hid": service.getUsers().hid,
+						"pageNo": this.pageNo
+					},
+					dataType: 'text',
+					complete: function() {
 
-				data.forEach(item => {
-					this.productList.push(item);
+					},
+					success: (d) => {
+						var datas = JSON.parse(d.data);
+						if (datas.code == 1) {
+							if (datas.data.count > 0) {
+								datas.data.list.forEach(item => {
+									item.pto = item.pto.replace(/\r\n/g, "");
+									item.self = 2;
+									if (item.updateName == service.getUsers().name) {
+										item.self = 1;
+									}
+									var rem=item.remarks.split("-");
+									item.oh=rem[0];
+									item.tx=rem[1];
+									this.productList.push(item);
+								});
+							} else {
+								uni.showToast({
+									title: "没有数据"
+								})
+							}
+
+						} else if (datas.code == 0) {
+							uni.showToast({
+								icon: 'none',
+								title: datas.msg,
+							});
+						} else {
+							uni.showToast({
+								icon: 'none',
+								title: "登录失败或者网络异常!",
+							});
+						}
+					},
+					fail: function() {
+						plus.nativeUI.toast("网络异常!");
+					}
 				});
-			}
-		},
 
-		onPullDownRefresh() {
-			this.loadData('refresh');
-			// 实际开发中通常是网络请求，加载完数据后就停止。这里仅做演示，加延迟为了体现出效果。
-			setTimeout(() => {
-				uni.stopPullDownRefresh();
-			}, 2000);
-		},
-		onReachBottom() {
-			this.loadData();
-		},
-		onLoad() {
-			this.loadData();
-			setTimeout(() => {
-				this.renderImage = true;
-			}, 300);
-			if (!this.hasLogin) {
+			},
+			login() {
 				uni.showModal({
 					title: '未登录',
 					content: '您未登录，需要登录后才能继续',
 					/**
 					 * 如果需要强制登录，不显示取消按钮
 					 */
-					showCancel: !this.forcedLogin,
+					showCancel: this.forcedLogin,
 					success: (res) => {
 						if (res.confirm) {
 							/**
@@ -107,6 +164,32 @@
 					}
 				});
 			}
+		},
+
+		onPullDownRefresh() {
+			this.loadData('refresh');
+			// 实际开发中通常是网络请求，加载完数据后就停止。这里仅做演示，加延迟为了体现出效果。
+			setTimeout(() => {
+				uni.stopPullDownRefresh();
+			}, 2000);
+		},
+		onReachBottom() {
+			this.pageNo++;
+			this.loadData();
+		},
+		onShow() {
+			if (!this.hasLogin) {
+
+				this.login()
+			}
+		},
+		onLoad() {
+			console.log("onload");
+			if (this.hasLogin) {
+				this.pageNo = 1;
+				this.loadData();
+
+			}
 		}
 	}
 </script>
@@ -116,7 +199,7 @@
 		color: #558ef0;
 	}
 
-	 
+
 
 	.button-sp-area {
 		margin: 0 auto;
@@ -148,7 +231,7 @@
 		top: 0;
 		left: 15upx;
 		width: 240upx;
-		height: 240upx;
+		height: 250upx;
 		background-position: center center;
 		background-size: cover;
 	}
@@ -156,7 +239,7 @@
 	.goodsList-listh6 {
 		padding-left: 250upx;
 		/* padding-top: 6upx; */
-		font-size: 30upx;
+		/* font-size: 30upx; */
 		color: #333333;
 		overflow: hidden;
 		text-overflow: ellipsis;

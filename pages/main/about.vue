@@ -7,14 +7,14 @@
 			</view>
 			<view class="desc">
 				<text class="code">app</text>
-				是一个使用平台。
+				asd
 			</view>
 			<view class="source">
-				<view class="title">本嘻嘻嘻试试：</view>
+				<view class="title">ssss：</view>
 				<view class="source-list">
 					<view class="source-cell">
 						<text space="nbsp">1. </text>
-						<text>三生三世 </text>
+						<text>ssss</text>
 					</view>
 					 
 				</view>

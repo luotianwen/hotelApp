@@ -1,7 +1,8 @@
 <template>
 	<view class="content">
 		<div style="margin: 0 auto; text-align: center;width:18rem;margin-top: 1.5rem;margin-bottom: 1.5rem;">
-			<img src="static/img/logo.png" height="50px" />
+			<img src="/static/img/logo.png" height="30%" width="40%" />
+			<!-- <image src="/static/img/logo.png" mode="scaleToFill"  height="10%"  width="20%"></image> -->
 		</div>
 		<view class="input-group">
 
@@ -20,7 +21,7 @@
 		<view class="action-row">
 			<!--  <navigator url="../reg/reg">注册账号</navigator>
             <text>|</text> -->
-			<navigator url="../pwd/pwd">忘记密码</navigator>
+			<navigator url="../pwd/pwd">修改密码</navigator>
 		</view>
 
 	</view>
@@ -39,11 +40,8 @@
 		},
 		data() {
 			return {
-				providerList: [],
-				hasProvider: false,
 				account: '',
-				password: '',
-				positionTop: 0
+				password: ''
 			}
 		},
 		computed: mapState(['forcedLogin']),
@@ -78,19 +76,19 @@
 						waiting.close();
 					},
 					success: (d) => {
-						var datas=JSON.parse(d.data);
+						var datas = JSON.parse(d.data);
 						if (datas.code == 1) {
 							plus.nativeUI.toast('登录成功');
+							datas.data.pwd = this.password;
+							datas.data.account = this.account;
 							service.addUser(datas.data);
 							this.toMain(this.account);
-						}else if(datas.code == 0) {
+						} else if (datas.code == 0) {
 							uni.showToast({
 								icon: 'none',
 								title: datas.msg,
 							});
-						}
-						 
-						 else {
+						} else {
 							uni.showToast({
 								icon: 'none',
 								title: "登录失败或者网络异常!",
@@ -108,19 +106,18 @@
 
 			toMain(userName) {
 				this.login(userName);
+				uni.reLaunch({
+					url: '/pages/main/main',
+				});
 
-				if (this.forcedLogin) {
-					uni.reLaunch({
-						url: '../main/main',
-					});
-				} else {
-					uni.navigateBack();
-				}
+
 
 			}
 		},
-		onReady() {
-
+		onLoad() {
+			let user = service.getUsers();
+			this.account = user.account;
+			this.password = user.pwd;
 		}
 	}
 </script>

@@ -1,5 +1,5 @@
 {
-    "name" : "hotelApp",
+    "name" : "酒店防漏App",
     "appid" : "__UNI__5F7B4F2",
     "description" : "酒店防漏App",
     "versionName" : "1.0.0",
@@ -45,9 +45,7 @@
             "ios" : {},
             /* SDK配置 */
             "sdkConfigs" : {
-                "push" : {
-                    "unipush" : {}
-                }
+                "push" : {}
             },
             "icons" : {
                 "android" : {
@@ -81,6 +79,10 @@
                     }
                 }
             }
+        },
+        "splashscreen" : {
+            "waiting" : false,
+            "alwaysShowBeforeRender" : false
         }
     },
     /* 快应用特有相关 */

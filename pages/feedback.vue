@@ -1,16 +1,16 @@
 <template>
-	<view class="page">
-		<view class='feedback-title'>
+	<view class="page" style="width: 100%;">
+		<view class='feedback-title' style="width: 100%;">
 			<text>问题和意见</text>
 			<text class="feedback-quick" @tap="chooseMsg">快速键入</text>
 		</view>
-		<view class="feedback-body">
+		<view class="feedback-body"  style="width: 100%;">
 			<textarea placeholder="请详细描述你的问题和意见..." v-model="sendDate.content" class="feedback-textare" />
 			</view>
         <view class='feedback-title'>
             <text>图片(选填,提供问题截图,总大小10M以下)</text>
         </view>
-        <view class="feedback-body feedback-uploader">
+        <view class="feedback-body feedback-uploader"  style="width: 100%;">
             <view class="uni-uploader">
                 <view class="uni-uploader-head">
                     <view class="uni-uploader-title">点击预览图片</view>

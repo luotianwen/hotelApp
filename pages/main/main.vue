@@ -1,25 +1,18 @@
 <template>
 	<view id="goodsList">
 
-		<!-- <div class="goodsList-cent clearfix">
-	
-			<view v-for="(value,key) in productList" :key="key" @click="goGoodDetail(value)" class="goodsList-list">
-				<image class="follow-centImg" :src="value.image"></image>
-	
-				<view class="goodsList-listh6">ss</view>
-				<view class="goodsList-listp">销量： ss</view>
-				<view class="goodsList-listp">售价：¥ss</view>
-			</view>
-	
-		</div>
-	 -->
-
 		<view class="goodsList-cent clearfix">
 			<view v-for="(product,index) in productList" :key="index" class="goodsList-list">
-				<image v-if="renderImage" :src="product.image" class="follow-centImg"></image>
+				<image :src="product.pto" class="follow-centImg"></image>
 				<view class="goodsList-listh6">漏登人员</view>
-				<view class="goodsList-listp">2019.9.25 17:20</view>
-				<view class="goodsList-listp"><button  type="primary"     >处理</button>
+				<view class="goodsList-listp">{{product.createDate}}</view>
+				<view class="goodsList-listp">
+					<button type="warn" v-if="product.state==0" @tap="doit(product,1)">处理</button>
+					<button type="primary" v-if="product.state==1&&product.self==1" @tap="doit(product,2)">已处理</button>
+					<button type="default" v-if="(product.state==1||product.state==2)&&product.self==2">{{product.updateName}}在处理中</button>
+					<button type="primary" v-if="product.state==2&&product.self==1" @tap="doit(product,3)">已完成</button>
+					<button type="default" v-if="product.state==3">{{product.updateName}}已处理完成</button>
+
 				</view>
 
 			</view>
@@ -29,6 +22,7 @@
 </template>
 
 <script>
+	import service from '../../service.js';
 	import {
 		mapState
 	} from 'vuex'
@@ -39,28 +33,105 @@
 			return {
 				title: 'product-list',
 				productList: [],
+				pageNo: 1,
 				renderImage: false
 			};
 		},
 		methods: {
+			doit(product, state1) {
+				var waiting = plus.nativeUI.showWaiting();
+				uni.request({
+					url: service.logupdateUrl(),
+					data: {
+						"name": service.getUsers().name,
+						"uid": service.getUsers().id,
+						"logId": product.id,
+						"state": state1
+					},
+					dataType: 'text',
+					complete: function() {
+						waiting.close();
+					},
+					success: (d) => {
+						var datas = JSON.parse(d.data);
+						if (datas.code == 1) {
+
+							product.state = state1;
+							plus.nativeUI.toast('操作成功');
+							//this.loadData('refresh');
+						} else if (datas.code == 0) {
+							uni.showToast({
+								icon: 'none',
+								title: datas.msg,
+							});
+						} else {
+							uni.showToast({
+								icon: 'none',
+								title: "操作失败或者网络异常!",
+							});
+						}
+					},
+					fail: function() {
+						plus.nativeUI.toast("网络异常!");
+					}
+				});
+			},
 			loadData(action = 'add') {
-				const data = [{
-					image: 'https://img-cdn-qiniu.dcloud.net.cn/uploads/example/product1.jpg',
-					title: 'Apple iPhone X 256GB 深空灰色 移动联通电信4G手机',
-					originalPrice: 9999,
-					favourPrice: 8888,
-					tip: '自营'
-				}];
+
 
 				if (action === 'refresh') {
+					this.pageNo = 1;
 					this.productList = [];
 				}
 
-				data.forEach(item => {
-					this.productList.push(item);
+				console.log(JSON.stringify(service.getUsers()));
+				uni.request({
+					url: service.getbaojingUrl(),
+					data: {
+						"hid": service.getUsers().hid,
+						"pageNo": this.pageNo
+					},
+					dataType: 'text',
+					complete: function() {
+
+					},
+					success: (d) => {
+						var datas = JSON.parse(d.data);
+						if (datas.code == 1) {
+							if (datas.data.count > 0) {
+								datas.data.list.forEach(item => {
+									item.pto = item.pto.replace(/\r\n/g, "");
+									item.self = 2;
+									if (item.updateName == service.getUsers().name) {
+										item.self = 1;
+									}
+
+									this.productList.push(item);
+								});
+							} else {
+								uni.showToast({
+									title: "没有数据"
+								})
+							}
+						} else if (datas.code == 0) {
+							uni.showToast({
+								icon: 'none',
+								title: datas.msg,
+							});
+						} else {
+							uni.showToast({
+								icon: 'none',
+								title: "登录失败或者网络异常!",
+							});
+						}
+					},
+					fail: function() {
+						plus.nativeUI.toast("网络异常!");
+					}
 				});
+
 			},
-			login(){
+			login() {
 				uni.showModal({
 					title: '未登录',
 					content: '您未登录，需要登录后才能继续',
@@ -96,20 +167,21 @@
 			}, 2000);
 		},
 		onReachBottom() {
+			this.pageNo++;
 			this.loadData();
 		},
 		onShow() {
 			if (!this.hasLogin) {
-				 
+
 				this.login()
 			}
 		},
 		onLoad() {
-			this.loadData();
-			setTimeout(() => {
-				this.renderImage = true;
-			}, 300);
-			 
+			if (this.hasLogin) {
+				this.pageNo = 1;
+				this.loadData();
+
+			}
 		}
 	}
 </script>
@@ -118,7 +190,7 @@
 	.active {
 		color: #558ef0;
 	}
- 
+
 
 	.button-sp-area {
 		margin: 0 auto;
@@ -168,7 +240,7 @@
 		white-space: inherit;
 	}
 
-	 
+
 
 	.goodsList-listp {
 		padding-left: 250upx;
