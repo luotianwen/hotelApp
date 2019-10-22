@@ -34,6 +34,7 @@
 				title: 'product-list',
 				productList: [],
 				pageNo: 1,
+				provider: [],
 				renderImage: false
 			};
 		},
@@ -82,8 +83,11 @@
 				if (action === 'refresh') {
 					this.pageNo = 1;
 					this.productList = [];
+					console.log("执行了刷新")
 				}
-
+				uni.showLoading({
+					title: '加载中...'
+				})
 				console.log(JSON.stringify(service.getUsers()));
 				uni.request({
 					url: service.getbaojingUrl(),
@@ -93,7 +97,7 @@
 					},
 					dataType: 'text',
 					complete: function() {
-
+						uni.hideLoading();
 					},
 					success: (d) => {
 						var datas = JSON.parse(d.data);
@@ -182,6 +186,39 @@
 				this.loadData();
 
 			}
+			uni.getProvider({
+				service: "push",
+				success: (e) => {
+					console.log("success", e);
+					this.provider = e.provider;
+					console.log("开启推送");
+					uni.subscribePush({
+						provider: this.provider[0],
+						success: (e) => {
+							console.log("已开启push接收");
+							console.log('success:' + JSON.stringify(e));
+						}
+					});
+					uni.onPush({
+						provider: this.provider[0],
+						success: (e) => {
+							console.log("开始监听透传数据");
+						},
+						callback: (e) => {
+
+							console.log("接收到透传数据");
+
+							console.log(JSON.stringify(e.data));
+							this.loadData('refresh');
+						}
+					});
+				},
+				fail: (e) => {
+					console.log("获取推送通道失败", e);
+				}
+			});
+
+
 		}
 	}
 </script>
